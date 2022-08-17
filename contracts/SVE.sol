@@ -30,7 +30,7 @@ contract SVE is Ownable, IERC20 {
     address teamAdvisorAddress = 0x43cbB65cc934360c6ECA0Fa19a100380A6d221B2;
 
     constructor() {
-        _name = "Space marvel token";
+        _name = "Space Marvel";
         _symbol = "SVE";
         _decimals = 18;
         _totalSupply = 10**9 * 10**18;
