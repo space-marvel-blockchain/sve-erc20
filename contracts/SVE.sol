@@ -54,7 +54,7 @@ contract SVE is Ownable, IERC20 {
     );
 
     function updateTaxContract(TaxContract _taxContract) external onlyOwner {
-        require(_taxContract != address(0), "Error: address(0)");
+        require(address(_taxContract) != address(0), "Error: address(0)");
         emit UpdateTaxContract(
             address(taxContract),
             address(_taxContract),

@@ -32,7 +32,7 @@ contract TaxContract is Ownable {
     address constant teamAdvisorAddress =
         0x43cbB65cc934360c6ECA0Fa19a100380A6d221B2;
 
-    event ExcludedTax(address user, bool isExcluded, uint245 time);
+    event ExcludedTax(address user, bool isExcluded, uint256 time);
 
     constructor() {
         excludedTax[privateSaleAddress] = true;
