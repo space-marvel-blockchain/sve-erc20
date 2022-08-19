@@ -17,37 +17,62 @@ contract TaxContract is Ownable {
 
     Tax[] public taxs;
 
-    mapping(address => bool) exclusedTax;
+    mapping(address => bool) excludedTax;
 
     address constant privateSaleAddress =
         0xC0ec934a21D27143B2e4BC26a7e2eCec3Eae6cB8;
-    address playToEarnAddress = 0xa113933D3310b92bfC47310c92691A632F5BC4e7;
-    address marketingAddress = 0x343D14587dF910f682AE77c3e809DCda8a52AB7D;
-    address ecosystemAddress = 0x88dfD1B40c6cF9701DFCc1EBD12BBFb0AA52982E;
-    address publicSaleAddress = 0xA596C18957CC8b933a9d75a326e47Dd3ddB9129E;
-    address teamAdvisorAddress = 0x43cbB65cc934360c6ECA0Fa19a100380A6d221B2;
+    address constant playToEarnAddress =
+        0xa113933D3310b92bfC47310c92691A632F5BC4e7;
+    address constant marketingAddress =
+        0x343D14587dF910f682AE77c3e809DCda8a52AB7D;
+    address constant ecosystemAddress =
+        0x88dfD1B40c6cF9701DFCc1EBD12BBFb0AA52982E;
+    address constant publicSaleAddress =
+        0xA596C18957CC8b933a9d75a326e47Dd3ddB9129E;
+    address constant teamAdvisorAddress =
+        0x43cbB65cc934360c6ECA0Fa19a100380A6d221B2;
+
+    event ExcludedTax(address user, bool isExcluded, uint245 time);
 
     constructor() {
-        exclusedTax[privateSaleAddress] = true;
-        exclusedTax[playToEarnAddress] = true;
-        exclusedTax[marketingAddress] = true;
-        exclusedTax[ecosystemAddress] = true;
-        exclusedTax[publicSaleAddress] = true;
-        exclusedTax[teamAdvisorAddress] = true;
-        exclusedTax[_msgSender()] = true;
+        excludedTax[privateSaleAddress] = true;
+        emit ExcludedTax(privateSaleAddress, true, block.timestamp);
+        excludedTax[playToEarnAddress] = true;
+        emit ExcludedTax(playToEarnAddress, true, block.timestamp);
+        excludedTax[marketingAddress] = true;
+        emit ExcludedTax(marketingAddress, true, block.timestamp);
+        excludedTax[ecosystemAddress] = true;
+        emit ExcludedTax(ecosystemAddress, true, block.timestamp);
+        excludedTax[publicSaleAddress] = true;
+        emit ExcludedTax(publicSaleAddress, true, block.timestamp);
+        excludedTax[teamAdvisorAddress] = true;
+        emit ExcludedTax(teamAdvisorAddress, true, block.timestamp);
+        excludedTax[_msgSender()] = true;
+        emit ExcludedTax(_msgSender(), true, block.timestamp);
     }
 
     function setExclusedTaxs(
         address[] memory _accounts,
-        bool[] memory _isExcluseds
+        bool[] memory _isExcludeds
     ) external onlyOwner {
         require(
-            _accounts.length == _isExcluseds.length,
+            _accounts.length == _isExcludeds.length,
             "Error: input invalid"
         );
-        for (uint8 i = 0; i < _accounts.length; i++)
-            exclusedTax[_accounts[i]] = _isExcluseds[i];
+        for (uint8 i = 0; i < _accounts.length; i++) {
+            require(_accounts[i] != address(0), "Error: address(0");
+            excludedTax[_accounts[i]] = _isExcludeds[i];
+            emit ExcludedTax(_accounts[i], _isExcludeds[i], block.timestamp);
+        }
     }
+
+    event SetTax(
+        uint256 from,
+        uint256 to,
+        uint256 percent,
+        bool valid,
+        uint256 time
+    );
 
     function setTaxs(
         uint256[] calldata _froms,
@@ -63,14 +88,30 @@ contract TaxContract is Ownable {
             delete taxs;
 
             for (uint256 i = 0; i < _froms.length; i++) {
+                require(_percents[i] < 10000);
                 Tax storage tax = taxs.push();
                 tax.from = _froms[i];
                 tax.to = _tos[i];
                 tax.percent = _percents[i];
                 tax.valid = _valids[i];
+                emit SetTax(
+                    _froms[i],
+                    _tos[i],
+                    _percents[i],
+                    _valids[i],
+                    block.timestamp
+                );
             }
         }
     }
+
+    event UpdateTax(
+        uint256 index,
+        uint256 from,
+        uint256 to,
+        uint256 percent,
+        uint256 time
+    );
 
     function modifyTax(
         uint256 _index,
@@ -81,12 +122,14 @@ contract TaxContract is Ownable {
         require(_index < taxs.length, "Invalid _index");
         require(_from > 0, "Invalid from");
         require(_to > _from, "Invalid from to");
+        require(_percent < 10000);
 
         if (_from != taxs[_index].from) taxs[_index].from = _from;
 
         if (_to != taxs[_index].to) taxs[_index].to = _to;
 
         if (_percent != taxs[_index].percent) taxs[_index].percent = _percent;
+        emit UpdateTax(_index, _from, _to, _percent, block.timestamp);
     }
 
     function getTax()
@@ -122,7 +165,7 @@ contract TaxContract is Ownable {
     ) external view returns (uint256) {
         if (taxs.length == 0) return 0;
 
-        if (exclusedTax[_sender] || exclusedTax[_recipient]) return 0;
+        if (excludedTax[_sender] || excludedTax[_recipient]) return 0;
 
         (, , , uint256 percent) = getTax();
 
@@ -133,10 +176,13 @@ contract TaxContract is Ownable {
         return 0;
     }
 
+    event Withdraw(address tokenContract, uint256 amount, uint256 time);
+
     function withdrawToken(address _tokenContract, uint256 _amount)
         external
         onlyOwner
     {
         IERC20(_tokenContract).transfer(_msgSender(), _amount);
+        emit Withdraw(_tokenContract, _amount, block.timestamp);
     }
 }

@@ -23,14 +23,19 @@ contract SVE is Ownable, IERC20 {
 
     address constant privateSaleAddress =
         0xC0ec934a21D27143B2e4BC26a7e2eCec3Eae6cB8;
-    address playToEarnAddress = 0xa113933D3310b92bfC47310c92691A632F5BC4e7;
-    address marketingAddress = 0x343D14587dF910f682AE77c3e809DCda8a52AB7D;
-    address ecosystemAddress = 0x88dfD1B40c6cF9701DFCc1EBD12BBFb0AA52982E;
-    address publicSaleAddress = 0xA596C18957CC8b933a9d75a326e47Dd3ddB9129E;
-    address teamAdvisorAddress = 0x43cbB65cc934360c6ECA0Fa19a100380A6d221B2;
+    address constant playToEarnAddress =
+        0xa113933D3310b92bfC47310c92691A632F5BC4e7;
+    address constant marketingAddress =
+        0x343D14587dF910f682AE77c3e809DCda8a52AB7D;
+    address constant ecosystemAddress =
+        0x88dfD1B40c6cF9701DFCc1EBD12BBFb0AA52982E;
+    address constant publicSaleAddress =
+        0xA596C18957CC8b933a9d75a326e47Dd3ddB9129E;
+    address constant teamAdvisorAddress =
+        0x43cbB65cc934360c6ECA0Fa19a100380A6d221B2;
 
     constructor() {
-        _name = "Space Marvel";
+        _name = "Space marvel token";
         _symbol = "SVE";
         _decimals = 18;
         _totalSupply = 10**9 * 10**18;
@@ -42,7 +47,19 @@ contract SVE is Ownable, IERC20 {
         _mint(teamAdvisorAddress, 230 * 10**6 * 10**18);
     }
 
+    event UpdateTaxContract(
+        address oldContract,
+        address newContract,
+        uint256 time
+    );
+
     function updateTaxContract(TaxContract _taxContract) external onlyOwner {
+        require(_taxContract != address(0), "Error: address(0)");
+        emit UpdateTaxContract(
+            address(taxContract),
+            address(_taxContract),
+            block.timestamp
+        );
         taxContract = _taxContract;
     }
 
@@ -197,6 +214,8 @@ contract SVE is Ownable, IERC20 {
         }
     }
 
+    event Withdraw(address tokenContract, uint256 amount, uint256 time);
+
     function withdrawToken(address _tokenContract, uint256 _amount)
         external
         onlyOwner
@@ -204,6 +223,7 @@ contract SVE is Ownable, IERC20 {
         IERC20 token = IERC20(_tokenContract);
 
         token.transfer(msg.sender, _amount);
+        emit Withdraw(_tokenContract, _amount, block.timestamp);
     }
 
     function _approve(
