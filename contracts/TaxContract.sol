@@ -88,7 +88,7 @@ contract TaxContract is Ownable {
             delete taxs;
 
             for (uint256 i = 0; i < _froms.length; i++) {
-                require(_percents[i] < 10000);
+                require(_percents[i] < 10000, "Error: percent > 100");
                 Tax storage tax = taxs.push();
                 tax.from = _froms[i];
                 tax.to = _tos[i];
@@ -122,7 +122,7 @@ contract TaxContract is Ownable {
         require(_index < taxs.length, "Invalid _index");
         require(_from > 0, "Invalid from");
         require(_to > _from, "Invalid from to");
-        require(_percent < 10000);
+        require(_percents[i] < 10000, "Error: percent > 100");
 
         if (_from != taxs[_index].from) taxs[_index].from = _from;
 
