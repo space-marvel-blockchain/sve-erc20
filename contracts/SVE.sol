@@ -34,17 +34,18 @@ contract SVE is Ownable, IERC20 {
     address constant teamAdvisorAddress =
         0x43cbB65cc934360c6ECA0Fa19a100380A6d221B2;
 
-    constructor() {
-        _name = "Space marvel token";
+    constructor(TaxContract _taxContract) {
+        require(address(_taxContract) != address(0), "Error: address(0)");
+        _name = "Space Marvel";
         _symbol = "SVE";
         _decimals = 18;
-        _totalSupply = 10**9 * 10**18;
         _mint(privateSaleAddress, 100 * 10**6 * 10**18);
         _mint(playToEarnAddress, 290 * 10**6 * 10**18);
         _mint(marketingAddress, 200 * 10**6 * 10**18);
         _mint(ecosystemAddress, 150 * 10**6 * 10**18);
         _mint(publicSaleAddress, 30 * 10**6 * 10**18);
         _mint(teamAdvisorAddress, 230 * 10**6 * 10**18);
+        taxContract = _taxContract;
     }
 
     event UpdateTaxContract(
@@ -119,13 +120,13 @@ contract SVE is Ownable, IERC20 {
         return true;
     }
 
-    function allowance(address owner, address spender)
+    function allowance(address from, address spender)
         external
         view
         override
         returns (uint256)
     {
-        return _allowances[owner][spender];
+        return _allowances[from][spender];
     }
 
     function approve(address spender, uint256 amount)
@@ -220,6 +221,10 @@ contract SVE is Ownable, IERC20 {
         external
         onlyOwner
     {
+        require(
+            _tokenContract != address(0) && _tokenContract != address(this),
+            "Error: address invalid"
+        );
         IERC20 token = IERC20(_tokenContract);
 
         token.transfer(msg.sender, _amount);
@@ -227,14 +232,14 @@ contract SVE is Ownable, IERC20 {
     }
 
     function _approve(
-        address owner,
+        address from,
         address spender,
         uint256 amount
     ) internal {
-        require(owner != address(0), "ERC20: approve from the zero address");
+        require(from != address(0), "ERC20: approve from the zero address");
         require(spender != address(0), "ERC20: approve to the zero address");
 
-        _allowances[owner][spender] = amount;
-        emit Approval(owner, spender, amount);
+        _allowances[from][spender] = amount;
+        emit Approval(from, spender, amount);
     }
 }

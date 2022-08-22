@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract TaxContract is Ownable {
     using SafeMath for uint256;
+    uint256 constant maximumPercentage = 5000; // 50% maximum
     struct Tax {
         uint256 from;
         uint256 to;
@@ -51,7 +52,7 @@ contract TaxContract is Ownable {
         emit ExcludedTax(_msgSender(), true, block.timestamp);
     }
 
-    function setExclusedTaxs(
+    function setExclusedTaxes(
         address[] memory _accounts,
         bool[] memory _isExcludeds
     ) external onlyOwner {
@@ -74,7 +75,7 @@ contract TaxContract is Ownable {
         uint256 time
     );
 
-    function setTaxs(
+    function setTaxes(
         uint256[] calldata _froms,
         uint256[] calldata _tos,
         uint256[] calldata _percents,
@@ -88,7 +89,10 @@ contract TaxContract is Ownable {
             delete taxs;
 
             for (uint256 i = 0; i < _froms.length; i++) {
-                require(_percents[i] < 10000, "Error: percent > 100");
+                require(
+                    _percents[i] < maximumPercentage,
+                    "Error: exceed maximum"
+                );
                 Tax storage tax = taxs.push();
                 tax.from = _froms[i];
                 tax.to = _tos[i];
@@ -113,7 +117,7 @@ contract TaxContract is Ownable {
         uint256 time
     );
 
-    function modifyTax(
+    function updateTax(
         uint256 _index,
         uint256 _from,
         uint256 _to,
@@ -122,7 +126,7 @@ contract TaxContract is Ownable {
         require(_index < taxs.length, "Invalid _index");
         require(_from > 0, "Invalid from");
         require(_to > _from, "Invalid from to");
-        require(_percents[i] < 10000, "Error: percent > 100");
+        require(_percent < maximumPercentage, "Error: exceed maximum");
 
         if (_from != taxs[_index].from) taxs[_index].from = _from;
 
@@ -182,6 +186,10 @@ contract TaxContract is Ownable {
         external
         onlyOwner
     {
+        require(
+            _tokenContract != address(0) && _tokenContract != address(this),
+            "Error: address invalid"
+        );
         IERC20(_tokenContract).transfer(_msgSender(), _amount);
         emit Withdraw(_tokenContract, _amount, block.timestamp);
     }
