@@ -52,7 +52,7 @@ contract TaxContract is Ownable {
         emit ExcludedTax(_msgSender(), true, block.timestamp);
     }
 
-    function setExclusedTaxes(
+    function setExcludedTaxes(
         address[] memory _accounts,
         bool[] memory _isExcludeds
     ) external onlyOwner {
